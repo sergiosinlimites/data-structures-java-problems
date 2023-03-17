@@ -1,3 +1,4 @@
+package src.examples.twoSum;
 import java.util.HashMap;
 
 public class twoSum {
