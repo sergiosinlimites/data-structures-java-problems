@@ -50,14 +50,11 @@ public class Main {
   public static void main(String[] args) {
     AVLTree tree = new AVLTree("Mongui");
 
-    // Scanner scanner = new Scanner(System.in);
-    // String lugares = scanner.nextLine();
-    // String[] lugaresSeparados = lugares.split(" ");
-    // String salida = lugaresSeparados[0];
-    // String llegada = lugaresSeparados[1];
-    String salida = "Tinjaca";
-    String llegada = "Guican";
-    System.out.println("Inicia");
+    Scanner scanner = new Scanner(System.in);
+    String lugares = scanner.nextLine();
+    String[] lugaresSeparados = lugares.split(" ");
+    String salida = lugaresSeparados[0];
+    String llegada = lugaresSeparados[1];
 
     String[] lista = { "Sachica", "Tinjaca", "Combita", "Chiquiza", "Sutamarchan", "Tibasosa", "Toca", "Guican",
         "Chivata", "Topaga", "Soraca", "Gameza", "Guayata", "Raquira", "Nobsa", "Tenza", "Aquitania" };
@@ -65,11 +62,9 @@ public class Main {
     Node root = tree.getRoot();
 
     for (String l : lista) {
-      tree.insert(root, l);
+      tree.insertNew(l);
     }
-    System.out.println("Aqui comienza la impresion");
     tree.printall(root);
-    System.out.println("Aqui termina la impresion");
     Node nodoSalida = tree.find(salida);
     tree.getPlacesBetween(nodoSalida, llegada);
   }
@@ -108,7 +103,7 @@ public class Main {
           return false; // El nodo es mayor
         }
       }
-      return key.length() > node.key.length(); // Si todos los caracteres coinciden, el nodo más largo es mayor
+      return key.length() > node.key.length();
     }
 
     private boolean isLess(Node node, String key) {
@@ -117,38 +112,39 @@ public class Main {
 
     public void printall(Node node) {
       if (node != null) {
-        System.out.println(node.key);
         printall(node.left);
         printall(node.right);
       }
     }
 
     public void getPlacesBetween(Node n, String key) {
-      System.out.println("la key es " + key);
-      Node startingNode = find(key);
+      Node startingNode = n;
       Node currentNode = startingNode;
-      int totalSteps = 0;
+      int upSteps = 1;
+      int downSteps = 0;
       boolean finished = false;
-      while (currentNode.parent != null && !finished) {
-        Node lastNode = currentNode;
-        currentNode = currentNode.parent;
-        totalSteps++;
-        System.out.println("incrementa " + currentNode.key + " total: " + totalSteps);
-        int moreSteps = 0;
-        if (currentNode.left != null && isEqual(currentNode.left, lastNode.key) && currentNode.right != null) {
-          moreSteps = findStops(currentNode.right, key, totalSteps);
-        } else if (currentNode.right != null && isEqual(currentNode.right, lastNode.key) && currentNode.left != null) {
-          moreSteps = findStops(currentNode.left, key, totalSteps);
-        }
-        if (moreSteps != -1) {
-          finished = true;
-          System.out.println("El total es " + (moreSteps + totalSteps));
+      downSteps = findStops(currentNode, key, upSteps);
+      if (downSteps > 0) {
+        System.out.print(downSteps);
+      } else {
+        while (currentNode.parent != null && !finished) {
+          Node lastNode = currentNode;
+          currentNode = currentNode.parent;
+          upSteps++;
+          if (currentNode.left != null && isEqual(currentNode.left, lastNode.key) && currentNode.right != null) {
+            downSteps = findStops(currentNode.right, key, upSteps);
+          } else if (currentNode.right != null && isEqual(currentNode.right, lastNode.key)
+              && currentNode.left != null) {
+            downSteps = findStops(currentNode.left, key, upSteps);
+          }
+          if (downSteps > 0) {
+            System.out.print(downSteps);
+          }
         }
       }
     }
 
     public Node find(String key) {
-      System.out.println("El root es " + root.key);
       Node resultNode = findNode(root, key);
       return resultNode;
     }
@@ -157,23 +153,21 @@ public class Main {
       if (node == null || isEqual(node, key)) {
         return node;
       } else if (isLess(node, key)) {
-        System.out.println("es menor");
         return findNode(node.left, key);
       } else {
-        System.out.println("es mayor " + node.key + " < " + key);
         return findNode(node.right, key);
       }
     }
 
     private int findStops(Node node, String key, int stops) {
-      if (node == null)
-        return -1;
-      if (isEqual(node, key)) {
+      if (isEqual(node, key) && node != null) {
         return stops;
-      } else if (isLess(node, key)) {
-        return findStops(node.left, key, stops++);
+      } else if (isLess(node, key) && node.left != null) {
+        return findStops(node.left, key, stops + 1);
+      } else if (isGreater(node, key) && node.right != null) {
+        return findStops(node.right, key, stops + 1);
       } else {
-        return findStops(node.right, key, stops++);
+        return -1;
       }
     }
 
@@ -193,6 +187,8 @@ public class Main {
       Node left = n.left;
       Node right = left.right;
       left.right = n;
+      left.parent = n.parent;
+      n.parent = left;
       n.left = right;
       updateHeight(n);
       updateHeight(left);
@@ -200,12 +196,11 @@ public class Main {
     }
 
     private Node rotateLeft(Node n) {
-      System.out.println("El nodo a rotar " + n.key);
-      System.out
-          .println("Sus hijos " + (n.left != null ? n.left.key : "") + " - " + (n.right != null ? n.right.key : ""));
       Node right = n.right;
       Node left = right.left;
       right.left = n;
+      right.parent = n.parent;
+      n.parent = right;
       n.right = left;
       updateHeight(n);
       updateHeight(right);
@@ -233,15 +228,18 @@ public class Main {
       return n;
     }
 
+    public void insertNew(String key) {
+      Node node = root;
+      root = this.insert(node, key);
+    }
+
     public Node insert(Node node, String key) {
       if (node == null) {
         return new Node(key);
       } else if (isLess(node, key)) {
-        System.out.println(node.key + " > " + key);
         node.left = insert(node.left, key);
         node.left.parent = node;
       } else if (isGreater(node, key)) {
-        System.out.println(node.key + " < " + key);
         node.right = insert(node.right, key);
         node.right.parent = node;
       } else {
