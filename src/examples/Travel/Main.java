@@ -64,7 +64,8 @@ public class Main {
     for (String l : lista) {
       tree.insertNew(l);
     }
-    tree.printall(root);
+
+    // tree.printall(root);
     Node nodoSalida = tree.find(salida);
     tree.getPlacesBetween(nodoSalida, llegada);
   }
@@ -103,7 +104,7 @@ public class Main {
           return false; // El nodo es mayor
         }
       }
-      return key.length() > node.key.length();
+      return key.length() > node.key.length(); // Si todos los caracteres coinciden, el nodo más largo es mayor
     }
 
     private boolean isLess(Node node, String key) {
@@ -112,11 +113,18 @@ public class Main {
 
     public void printall(Node node) {
       if (node != null) {
+        System.out.println(node.key);
         printall(node.left);
         printall(node.right);
       }
     }
 
+    /**
+     * Gets the number of nodes between 2 nodes of the tree (counts the extremes)
+     * 
+     * @param n   The departure node
+     * @param key The key name of the arrival node
+     */
     public void getPlacesBetween(Node n, String key) {
       Node startingNode = n;
       Node currentNode = startingNode;
@@ -124,9 +132,9 @@ public class Main {
       int downSteps = 0;
       boolean finished = false;
       downSteps = findStops(currentNode, key, upSteps);
-      if (downSteps > 0) {
+      if (downSteps > 0) { // Search down first
         System.out.print(downSteps);
-      } else {
+      } else { // Starts searching in the upper nodes until the root
         while (currentNode.parent != null && !finished) {
           Node lastNode = currentNode;
           currentNode = currentNode.parent;
@@ -144,11 +152,20 @@ public class Main {
       }
     }
 
+    /**
+     * Find a node from the key
+     * 
+     * @param key The name
+     * @return The found node
+     */
     public Node find(String key) {
       Node resultNode = findNode(root, key);
       return resultNode;
     }
 
+    /**
+     * Internal method for finding (recursive)
+     */
     private Node findNode(Node node, String key) {
       if (node == null || isEqual(node, key)) {
         return node;
@@ -159,6 +176,9 @@ public class Main {
       }
     }
 
+    /**
+     * Search node by node until it finds the sought node
+     */
     private int findStops(Node node, String key, int stops) {
       if (isEqual(node, key) && node != null) {
         return stops;
@@ -171,18 +191,38 @@ public class Main {
       }
     }
 
+    /**
+     * Updates the height of a node
+     * 
+     * @param n The node
+     */
     private void updateHeight(Node n) {
       n.height = 1 + Math.max(height(n.left), height(n.right));
     }
 
+    /**
+     * Returns the height of a node
+     * 
+     * @param n The node
+     * @return The height
+     */
     private int height(Node n) {
       return n == null ? -1 : n.height;
     }
 
+    /**
+     * For balancing the AVL
+     * 
+     * @param n The node that you want to know its balance
+     * @return -n ... n
+     */
     private int getBalance(Node n) {
       return (n == null) ? 0 : height(n.right) - height(n.left);
     }
 
+    /**
+     * Right rotation AVL
+     */
     private Node rotateRight(Node n) {
       Node left = n.left;
       Node right = left.right;
@@ -195,6 +235,9 @@ public class Main {
       return left;
     }
 
+    /**
+     * Left rotation AVL
+     */
     private Node rotateLeft(Node n) {
       Node right = n.right;
       Node left = right.left;
@@ -207,6 +250,12 @@ public class Main {
       return right;
     }
 
+    /**
+     * Rebalances the tree if a node is unbalanced
+     * 
+     * @param n
+     * @return
+     */
     Node rebalance(Node n) {
       updateHeight(n);
       int balance = getBalance(n);
@@ -228,11 +277,23 @@ public class Main {
       return n;
     }
 
+    /**
+     * Insert a new key
+     * 
+     * @param key
+     */
     public void insertNew(String key) {
       Node node = root;
       root = this.insert(node, key);
     }
 
+    /**
+     * AVL insert method
+     * 
+     * @param node The node
+     * @param key  The key
+     * @return The new root (could be different)
+     */
     public Node insert(Node node, String key) {
       if (node == null) {
         return new Node(key);
@@ -248,6 +309,9 @@ public class Main {
       return rebalance(node);
     }
 
+    /**
+     * AVL delete method
+     */
     private Node delete(Node node, String key) {
       if (node == null) {
         return node;
@@ -270,6 +334,12 @@ public class Main {
       return node;
     }
 
+    /**
+     * Gets the most left child of the tree
+     * 
+     * @param node
+     * @return
+     */
     private Node mostLeftChild(Node node) {
       while (node.left != null) {
         node = node.left;
