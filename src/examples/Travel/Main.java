@@ -64,7 +64,6 @@ public class Main {
     for (String l : lista) {
       tree.insertNew(l);
     }
-
     // tree.printall(root);
     Node nodoSalida = tree.find(salida);
     tree.getPlacesBetween(nodoSalida, llegada);
@@ -113,7 +112,7 @@ public class Main {
 
     public void printall(Node node) {
       if (node != null) {
-        System.out.println(node.key);
+        // // System.out.println(node.key);
         printall(node.left);
         printall(node.right);
       }
@@ -139,14 +138,16 @@ public class Main {
           Node lastNode = currentNode;
           currentNode = currentNode.parent;
           upSteps++;
-          if (currentNode.left != null && isEqual(currentNode.left, lastNode.key) && currentNode.right != null) {
+          if (isEqual(currentNode, key)) {
+            downSteps = findStops(currentNode, startingNode.key, 0);
+          } else if (currentNode.left != null && isEqual(currentNode.left, lastNode.key) && currentNode.right != null) {
             downSteps = findStops(currentNode.right, key, upSteps);
           } else if (currentNode.right != null && isEqual(currentNode.right, lastNode.key)
               && currentNode.left != null) {
             downSteps = findStops(currentNode.left, key, upSteps);
           }
           if (downSteps > 0) {
-            System.out.print(downSteps);
+            System.out.print(downSteps + 1);
           }
         }
       }
@@ -180,6 +181,8 @@ public class Main {
      * Search node by node until it finds the sought node
      */
     private int findStops(Node node, String key, int stops) {
+      // System.out.println("La cantidad de stops es " + stops + " node: "+ node.key +
+      // " key:" + key);
       if (isEqual(node, key) && node != null) {
         return stops;
       } else if (isLess(node, key) && node.left != null) {
@@ -285,6 +288,7 @@ public class Main {
     public void insertNew(String key) {
       Node node = root;
       root = this.insert(node, key);
+      // System.out.println("el nodo que se inserto inicia en "+ node.key);
     }
 
     /**
